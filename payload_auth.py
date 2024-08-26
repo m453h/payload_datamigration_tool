@@ -19,8 +19,9 @@ class Auth:
 
   def login(self):
     has_cookies = False
+    cookies_path = f"tmp/{self.type}.cookies"
     try:
-      with open(self.type+'-cookies', 'rb') as f:
+      with open(cookies_path, 'rb') as f:
         self.req.cookies.update(pickle.load(f))
         has_cookies = True
     except FileNotFoundError:
@@ -41,7 +42,7 @@ class Auth:
 
           response = self.req.post(url, headers=headers, json=payload)
           response.raise_for_status()
-          with open(self.type+'-cookies', 'wb') as f:
+          with open(cookies_path, 'wb') as f:
             pickle.dump(self.req.cookies, f)
           return True
       except requests.exceptions.RequestException as err:
