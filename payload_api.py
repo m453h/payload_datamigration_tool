@@ -11,11 +11,14 @@ class PayloadAPI:
     with open(collections_path, 'r') as file:
       data = json.load(file)
       for collection in data['collections']:
-         self.get_collections(collection.get('name'))
+         if collection.get('name') != 'donors':
+            continue
+         self.get_collections(collection)
 
   def get_collections(self, collection, page_number=1):
       try:
-          url = f"{self.source.endpoint.rstrip('/')}/{collection}?page={page_number}"
+          name = collection.get('name')
+          url = f"{self.source.endpoint.rstrip('/')}/{name}?page={page_number}"
           response = self.source.session.get(url)
           if response.status_code == 200:
               data = response.json()
@@ -34,11 +37,15 @@ class PayloadAPI:
   
   def post_collection(self, data, collection):
     try:
-      url = f"{self.sink.endpoint.rstrip('/')}/{collection}"
-      print(json.dumps(data, indent=4))
+      name = collection.get('name')
+      upload_fields = collection.get("upload_fields")
+      url = f"{self.sink.endpoint.rstrip('/')}/{name}"
+      # print(json.dumps(data, indent=4))
 
-      '''#Upload Image resource
-      data['logo'] = self.upload_file(data['logo'])'''
+      #Upload resource
+      for field in upload_fields:
+        data[field] = self.upload_file(data[field])
+
       response = requests.post(
           url,
           headers={"Content-Type": "application/json"},
@@ -56,8 +63,37 @@ class PayloadAPI:
         headers={"Content-Type": "application/json"},
         data=json.dumps(data),
       )
-    upload_reponse = upload_reponse.json()
+    response_data = upload_reponse.json()
+    
+    if upload_reponse.status_code == 200:
+      try:
+        return upload_reponse['doc']['id']
+      except KeyError:
+        return None
+    elif upload_reponse.status_code == 400:
+        try:
+          errors = (response_data['errors'])
+          for error in errors:
+             error_items = error.get('data').get('errors')
+             for error_item in error_items:
+              if error_item.get('field') == 'filename'\
+                  and error_item.get('message') == 'Value must be unique':
+                 print("File already uploaded...getting original file")
+                 return self.get_media_file_id(data.get('filename'))
+        except KeyError:
+           return None
+      
+
+  def get_media_file_id(self, filename):
+    url = f"{self.sink.endpoint.rstrip('/')}/media"
+    params = {
+        "where[filename][equals]": filename
+    }
+    response = requests.get(url, 
+                            headers={"Content-Type": "application/json"},
+                            params=params)
+    response = response.json()
     try:
-      return upload_reponse['doc']['id']
+       return response['docs'][0]['id']
     except KeyError:
        return None

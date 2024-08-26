@@ -11,6 +11,10 @@
     },
     {
       "name": "offices"
+    }, 
+    {
+      "name": "donors",
+      "upload_fields": ["logo"]
     }
   ]
 }  
