@@ -1,5 +1,4 @@
 .env
 ENV/*
 __pycache__
-SINK-cookies
-SOURCE-cookies
+tmp/*

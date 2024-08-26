@@ -1,0 +1,16 @@
+{
+  "collections":[
+    {
+      "name": "author"
+    },
+    {
+      "name": "tag"
+    },
+    {
+      "name": "teams"
+    },
+    {
+      "name": "offices"
+    }
+  ]
+}  

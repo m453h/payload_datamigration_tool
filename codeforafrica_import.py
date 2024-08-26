@@ -8,4 +8,4 @@ if source_auth.login() and sink_auth.login():
     print("User is authenticated...Source [{}]".format((source_auth.endpoint)))
     print("User is authenticated...Sink [{}]".format((sink_auth.endpoint)))
     cfa_site = PayloadAPI(source_auth, sink_auth)
-    cfa_site.import_data()
+    cfa_site.import_data('collections/codeforafrica.json')
