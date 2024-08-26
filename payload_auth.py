@@ -1,3 +1,5 @@
+from datetime import datetime
+from http.cookiejar import Cookie
 import requests,pickle
 import os
 from dotenv import load_dotenv
@@ -24,6 +26,8 @@ class Auth:
       with open(cookies_path, 'rb') as f:
         self.req.cookies.update(pickle.load(f))
         has_cookies = True
+        if self.is_expired_session():
+          has_cookies = False
     except FileNotFoundError:
       pass
 
@@ -58,3 +62,11 @@ class Auth:
   @property
   def endpoint(self):
      return self.api_url
+
+  def is_expired_session(self):
+    current_time = int(datetime.now().timestamp())
+    for cookie in self.req.cookies:
+      if isinstance(cookie, Cookie):
+        if not cookie.is_expired(current_time):
+            return True
+    return False
