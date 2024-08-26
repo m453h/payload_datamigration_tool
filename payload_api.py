@@ -20,8 +20,6 @@ class PayloadAPI:
               docs = data.get("docs")
               for doc in docs:
                  self.post_collection(doc, collection)
-              #json_str = json.dumps(data, indent=4)
-              #print(json_str)
               if page_number < data.get("totalPages"):
                   return self.get_collections(collection, data.get("page") + 1)
           else:

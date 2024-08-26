@@ -1,4 +1,4 @@
-import requests
+import requests,pickle
 import os
 from dotenv import load_dotenv
 
@@ -6,6 +6,7 @@ class Auth:
 
   def __init__(self, type):
     load_dotenv()
+    self.type = type
     if type == "SOURCE":
       self.username = os.getenv("SOURCE_USERNAME")
       self.password = os.getenv("SOURCE_PASSWORD")
@@ -17,24 +18,37 @@ class Auth:
     self.req = requests.Session()
 
   def login(self):
+    has_cookies = False
     try:
-        url = self.api_url + "/users/login"
+      with open(self.type+'-cookies', 'rb') as f:
+        self.req.cookies.update(pickle.load(f))
+        has_cookies = True
+    except FileNotFoundError:
+      pass
 
-        headers = {
-            "Content-Type": "application/json",
-        }
+    if not has_cookies:
+      try:
+          url = self.api_url + "/users/login"
 
-        payload = {
-            "email": self.username,
-            "password": self.password
-        }
+          headers = {
+              "Content-Type": "application/json",
+          }
 
-        response = self.req.post(url, headers=headers, json=payload)
-        response.raise_for_status()
-        return True
-    except requests.exceptions.RequestException as err:
-        print(f"An error occurred: {err}")
-    return False
+          payload = {
+              "email": self.username,
+              "password": self.password
+          }
+
+          response = self.req.post(url, headers=headers, json=payload)
+          response.raise_for_status()
+          with open(self.type+'-cookies', 'wb') as f:
+            pickle.dump(self.req.cookies, f)
+          return True
+      except requests.exceptions.RequestException as err:
+          print(f"An error occurred: {err}")
+      return False
+    else:
+      return True
   
   @property
   def session(self):
