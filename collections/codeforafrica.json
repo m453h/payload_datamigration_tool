@@ -15,6 +15,10 @@
     {
       "name": "donors",
       "upload_fields": ["logo"]
+    },
+    {
+      "name": "partners",
+      "upload_fields": ["logo"]
     }
   ]
 }  
